@@ -1,6 +1,8 @@
 package com.techcourse.service;
 
 import com.interface21.dao.DataAccessException;
+import com.interface21.jdbc.datasource.DataSourceUtils;
+import com.interface21.transaction.support.TransactionSynchronizationManager;
 import com.techcourse.dao.UserDao;
 import com.techcourse.dao.UserHistoryDao;
 import com.techcourse.domain.User;
@@ -36,7 +38,9 @@ public class UserService {
     }
 
     public void changePassword(final long id, final String newPassword, final String createBy) {
-        try(Connection connection = dataSource.getConnection()) { // 외부 try - catch: connection 연결 과정 에러 관리
+        Connection connection = null;
+        try { // 외부 try - catch: connection 연결 과정 에러 관리
+            connection = DataSourceUtils.getConnection(dataSource);
             connection.setAutoCommit(false);
 
             try { // 내부 try - catch 트랜잭션 관리 보장.
@@ -62,6 +66,12 @@ public class UserService {
         } catch (SQLException exceptionWhenConnect) {
             log.error("DB 커넥션 획득 실패.", exceptionWhenConnect);
             throw new DataAccessException("커넥션을 얻지 못했습니다.", exceptionWhenConnect);
+
+        } finally {
+            if (connection != null) {
+                DataSourceUtils.releaseConnection(connection, dataSource);
+                TransactionSynchronizationManager.unbindResource(dataSource);
+            }
         }
     }
 }
