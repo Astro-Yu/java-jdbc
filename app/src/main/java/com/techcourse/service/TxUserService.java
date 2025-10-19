@@ -1,6 +1,7 @@
 package com.techcourse.service;
 
 import com.interface21.dao.DataAccessException;
+import com.interface21.jdbc.CannotGetJdbcConnectionException;
 import com.interface21.jdbc.datasource.DataSourceUtils;
 import com.interface21.transaction.support.TransactionSynchronizationManager;
 import com.techcourse.domain.User;
@@ -37,11 +38,12 @@ public class TxUserService implements UserService {
         Connection connection = null;
         try {
             connection = DataSourceUtils.getConnection(dataSource);
-            connection.setAutoCommit(false);
+
             try {
+                connection.setAutoCommit(false);
                 userService.changePassword(id, newPassword, createdBy);
                 connection.commit();
-            } catch (SQLException exceptionWhenCommit) {
+            } catch (Exception exceptionWhenCommit) {
                 log.error("커밋 실패", exceptionWhenCommit);
 
                 try {
@@ -52,7 +54,7 @@ public class TxUserService implements UserService {
                     throw new DataAccessException("롤백 중 에러가 발생했습니다.", exceptionWhenRollback);
                 }
             }
-        } catch (SQLException exceptionWhenConnect) {
+        } catch (CannotGetJdbcConnectionException exceptionWhenConnect) {
             log.error("DB 커넥션 획득 실패.", exceptionWhenConnect);
             throw new DataAccessException("커넥션을 얻지 못했습니다.", exceptionWhenConnect);
         } finally {
