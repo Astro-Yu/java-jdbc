@@ -36,7 +36,7 @@ public class JdbcTemplate {
     public <T> Optional<T> executeSelect(String sql, PreparedStatementSetter pss, RowMapper<T> rowMapper) {
         return execute(sql, pstmt -> {
             pss.setValue(pstmt);
-            try(ResultSet rs = pstmt.executeQuery()) {
+            try (ResultSet rs = pstmt.executeQuery()) {
                 if (!rs.next()) {
                     return Optional.empty();
                 }
