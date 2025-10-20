@@ -7,19 +7,18 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-// 4단계 미션에서 사용할 것
-public abstract class DataSourceUtils {
+public final class DataSourceUtils {
 
     private DataSourceUtils() {}
 
     public static Connection getConnection(DataSource dataSource) throws CannotGetJdbcConnectionException {
         Connection connection = TransactionSynchronizationManager.getResource(dataSource);
-        if (connection != null) {
+        if (connection != null) { // null 이 아니라면 바로 반환
             return connection;
         }
 
-        try {
-            connection = dataSource.getConnection();
+        try { // connection이 null 인 경우
+            connection = dataSource.getConnection(); // connection을 가져오고 Map에 바인딩 후 반환
             TransactionSynchronizationManager.bindResource(dataSource, connection);
             return connection;
         } catch (SQLException ex) {
